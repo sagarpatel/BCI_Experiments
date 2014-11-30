@@ -72,11 +72,11 @@ class connectMuse:
         
         # Initialize the data arrays to plot in real-time
         self.data = np.asarray(self.eegPackets)        
-        self.X, self.f, self.t0 = self.stft(self.data[:,0], self.Fs, 1, 0.1)
+        self.X, self.f, self.t0 = self.stft(self.data[:,0], self.Fs, 1, nfft=512, hop=0.1)
         self.t = np.arange(0,self.bufferSize,1.0/self.Fs)
         self.accData = np.zeros((self.accFs*self.bufferSize,3))
         
-        self.spectrUpdatePeriod = 1 # in seconds
+        self.spectrUpdatePeriod = spectrUpdatePeriod # in seconds
         
     def initOSC(self, ipAddress='127.0.0.1', port=4000):
         """Initialize the OSC connection"""
@@ -94,8 +94,32 @@ class connectMuse:
                 self.accPackets.pop()
                 self.accPackets.appendleft(stuff)                
         
+        def format_eeg_quant_handler(addr, tags, stuff, source):
+            pass 
+        
+        def format_config_handler(addr, tags, stuff, source):
+            pass 
+        
+        def format_version_handler(addr, tags, stuff, source):
+            pass
+        
+        def format_drlref_handler(addr, tags, stuff, source):
+            pass
+        
+        def format_batt_handler(addr, tags, stuff, source):
+            pass
+
+        def format_status_handler(addr, tags, stuff, source):
+            pass
+        
         self.s.addMsgHandler("/muse/eeg", format_eeg_handler)
         self.s.addMsgHandler("/muse/acc", format_acc_handler)
+        self.s.addMsgHandler("/muse/config", format_config_handler)
+        self.s.addMsgHandler("/muse/version", format_version_handler)        
+        self.s.addMsgHandler("/muse/drlref", format_drlref_handler)
+        self.s.addMsgHandler("/muse/batt", format_batt_handler)    
+        self.s.addMsgHandler("/muse/eeg/quantization", format_eeg_quant_handler)
+        self.s.addMsgHandler("/muse/dsp/status_indicator", format_status_handler)
         
     def initFigure(self):
         """Initialize a figure with 3 subplots: Raw EEG signals, EEG spectrogram from channel 1 and accelerometer signals.
@@ -171,7 +195,7 @@ class connectMuse:
         self.ch4.set_ydata(self.data[:,3])
         
         # Spectrogram
-        self.X,f,t = self.stft(self.data[:,0], self.Fs, 1, 0.1)
+        self.X,f,t = self.stft(self.data[:,0], self.Fs, 1, nfft=512, hop=0.1)
         self.X = np.log10(self.X)
         self.image.set_data(self.X.T)
         self.image.set_clim(np.min(self.X),np.max(self.X)) 
@@ -187,24 +211,33 @@ class connectMuse:
         
         plt.draw()
         
-    def processEEG(self, channel):
-        """Compute the log spectrogram of the specified raw EEG channel, every [self.spectrUpdatePeriod] seconds."""     
+    def processEEG(self, channel, typeProcess=1):
+        """Compute the log spectrogram of the specified raw EEG channel, every 
+        [self.spectrUpdatePeriod] seconds.
+        
+        Inputs:
+            channel: Channel to process [0,1,2,3]
+            typeProcess: If 0, compute the spectrogram on the full buffer
+                         If 1, compute the FFT for the newest window only
+        """
+        
         while True:
             print('*****************')
             self.data = np.asarray(self.eegPackets)
             self.data = (self.data - np.mean(self.data, axis=0))#/np.std(self.data, axis=0)
             
-            # Apply spectrogram decomposition
-            
-            # Pxx is the segments x freqs array of instantaneous power, freqs is
-            # the frequency vector, bins are the centers of the time bins in which
-            # the power is computed, and im is the matplotlib.image.AxesImage
-            # instance
-            
-            #Pxx, freqs, bins, im = plt.specgram(data[:,0], Fs = self.Fs) #, Fs=Fs, noverlap=900,
-            
-            self.X,f,t = self.stft(self.data[:,channel], self.Fs, 1, 0.1)
-            self.X = np.log10(self.X)
+            if typeProcess == 0:
+                # Apply spectrogram on the whole EEG buffer
+                self.X,f,t = self.stft(self.data[:,channel], self.Fs, 1, nfft=512, hop=0.1)
+                self.X = np.log10(self.X)
+                
+            elif typeProcess == 1:
+                # Apply FFT on the most recent window of 'winDur' seconds
+                self.Xfft,f = self.fft(self.data[:,channel], self.Fs, 1, nfft=512)
+                self.Xfft = np.log10(self.Xfft)
+                
+                self.X[1:,:] = self.X[0:-1,:]
+                self.X[0,:] = self.Xfft
             
             time.sleep(self.spectrUpdatePeriod)
     
@@ -219,25 +252,33 @@ class connectMuse:
         print 'Starting the plotting timer'
         self.timer.start()
 
-    def startSpectrogramComputation(self, channel):
+    def startSpectrogramComputation(self, channel, typeProcess):
         print 'Starting the spectrogram computation with channel %i'%(channel+1) 
-        pr = threading.Thread(target = self.processEEG, args = [channel])
-        pr.start()
+        self.pr = threading.Thread(target = self.processEEG, args = [channel, typeProcess])
+        self.pr.start()
         
     def startZMQServer(self, refreshTime, port=5556):
-        print 'Initializinfg the ZMQ server'
+        print 'Initializing the ZMQ server'
         self.initZMQ(port)
         print 'Starting the ZMQ server'
         zmqSend = threading.Thread(target = self.sendZMQ, args = [refreshTime])
         zmqSend.start()
         
-    def stopOSCServer(self):
-        print 'Stopping the OSC server'
-        self.s.close()
+    def stopDataStreaming(self):
+        print 'Stopping the OSC server or the streaming from a file'
+        try:
+            self.s.close()
+            print('OSC server stopped.')
+        except:
+            pass
+        else:
+            self.readEEGTimer.cancel()
+            self.readAccTimer.cancel()
+            print('Streaming from file stopped.')
         
-    def pickleData(self):
+    def pickleData(self, filename='EEG_acc_data.pkl'):
         """Pickle the raw EEG packets of the plotting buffer."""
-        with open('EEG_acc_data.pkl', 'wb') as outputFile:
+        with open(filename, 'wb') as outputFile:
             pickle.dump((self.eegPackets,self.accPackets), outputFile)
         print('EEG and accelerometer data pickled.')
         
@@ -250,13 +291,41 @@ class connectMuse:
     def sendZMQ(self, refreshTime=1):
         """Send the newest [refreshTime] seconds of spectrogram data via pyZMQ, serialized in json"""
         while True:
-            msg2send = self.X[0:self.Fs*refreshTime,:].tolist()
+            if self.X.ndim == 2:
+                msg2send = self.X[0,:].tolist()
+                #msg2send = self.X[0:self.Fs*refreshTime,:].tolist()
+            elif self.X.ndim == 1:
+                msg2send = self.X.tolist()
             self.socket.send(json.dumps(msg2send))
             #msg = socket.recv()
             #print msg
             time.sleep(refreshTime)
+            
+    def fft(self, x, Fs, frameSize, nfft=512):
+        """ 
+        Performs the FFT on a 1D signal x
         
-    def stft(self, x, Fs, frameSize, hop):
+        Inputs:
+            x: 1D signal (numpy array)
+            Fs: Sampling frequency of x
+            frameSize: Length of the window on which to apply the FFT, in seconds
+            nfft: Length of the FFT (number of FFT bins)
+            
+        Output:
+            X: Spectrogram of x (real) [Time x Frequency]
+            f: Array of frequencies
+        """
+        
+        framesamp = int(frameSize*Fs)
+        w = np.hamming(framesamp)
+        X = abs(np.fft.fft(w*x[:framesamp], n=nfft))
+        f = np.fft.fftfreq(nfft, 1./Fs)
+        f = f[f>=0]
+        X = X[0:len(f)] # Only keep the part from 0 to Fs/2
+
+        return X, f
+        
+    def stft(self, x, Fs, frameSize, nfft=512, hop=0.1):
         """ 
         Performs the Short Time Fourier Transform on a 1D signal x
             Adapted from http://stackoverflow.com/questions/2459295/invertible-stft-and-istft-in-python
@@ -266,6 +335,7 @@ class connectMuse:
             x: 1D signal (numpy array)
             Fs: Sampling frequency of x
             frameSize: Length of the window on which to apply the FFT, in seconds
+            nfft: Length of the FFT (number of FFT bins)
             hop: Stride between two consecutive windows, in seconds
             
         Output:
@@ -277,9 +347,9 @@ class connectMuse:
         framesamp = int(frameSize*Fs)
         hopsamp = int(hop*Fs)
         w = np.hamming(framesamp)
-        X = np.array([abs(np.fft.fft(w*x[i:i+framesamp])) 
+        X = np.array([abs(np.fft.fft(w*x[i:i+framesamp], n=nfft)) 
                          for i in range(0, len(x)-framesamp, hopsamp)])
-        f = np.fft.fftfreq(framesamp, 1./Fs)
+        f = np.fft.fftfreq(nfft, 1./Fs)
         t = np.arange(0, (len(x)-framesamp)/Fs, hop)
         
         # Only keep the part from 0 to Fs/2
@@ -299,7 +369,7 @@ class connectMuse:
             self.eegReadIndex = 0
         else:
             self.eegReadIndex += 1
-        threading.Timer(1./self.Fs, self.readRecordedEEG).start()
+        self.readEEGTimer = threading.Timer(1./self.Fs, self.readRecordedEEG).start()
         
     def readRecordedAcc(self):
         """Reads one line after the other, every 1/accFs; and then updates the line number; start from the beginning when done"""
@@ -312,7 +382,7 @@ class connectMuse:
             self.accReadIndex = 0
         else:
             self.accReadIndex += 1
-        threading.Timer(1./self.accFs, self.readRecordedAcc).start()
+        self.readAccTimer = threading.Timer(1./self.accFs, self.readRecordedAcc).start()
     
     def startReadFromFile(self, inputFileName = 'EEG_acc_data.pkl'):
         """Unpickles the recorded dataset, then start the streaming of EEG and Acc data."""
@@ -328,11 +398,11 @@ class connectMuse:
         
 if __name__ == "__main__":
     
-    plotData = True
+    plotData = False
     playbackData = True
     
     # Instantiate the connectMuse object
-    moc = connectMuse(bufferSize=5)
+    moc = connectMuse(bufferSize=5, spectrUpdatePeriod=0.1)
     
     # Choose where the data comes from: from a pre-recorded pickled file, or from Muse-IO (OSC packets)
     if playbackData:
@@ -345,16 +415,16 @@ if __name__ == "__main__":
         moc.initFigure()
         moc.startPlotTimer()
     else:
-        moc.startSpectrogramComputation(channel=0)
+        moc.startSpectrogramComputation(channel=1,typeProcess=1)
     
     # Start the ZMQ server for sending the spectrogram data
-    moc.startZMQServer(refreshTime=1)
+    moc.startZMQServer(refreshTime=0.1)
 
 
     # When recording...
-#    time.sleep(122)
-#    moc.stopOSCServer()
-#    moc.pickleData()
+#    time.sleep(5)
+#    moc.stopDataStreaming()
+#    moc.pickleData('EEG_acc_data_10ms.pkl')
     
 # TODO:
     # Only compute the new part of the spectrogram, not the whole window!
