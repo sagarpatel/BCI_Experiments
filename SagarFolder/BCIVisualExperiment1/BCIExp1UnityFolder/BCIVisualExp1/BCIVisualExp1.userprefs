@@ -1,9 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/LMC_FingertipsStitch.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/FDScripts/AudioDirectorScript.cs">
     <Files>
-      <File FileName="Assets/Scripts/LMC_FingertipsStitch.cs" Line="8" Column="15" />
-      <File FileName="Assets/Scripts/MeshGeneratorCreatureControls.cs" Line="39" Column="1" />
+      <File FileName="Assets/Scripts/FDScripts/MeshLinesGenerator.cs" Line="375" Column="1" />
+      <File FileName="Assets/Scripts/BCIDataDirector.cs" Line="12" Column="14" />
+      <File FileName="Assets/Scripts/FDScripts/LMC_FingertipsStitch.cs" Line="106" Column="53" />
+      <File FileName="Assets/Scripts/FDScripts/AudioDirectorScript.cs" Line="127" Column="123" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

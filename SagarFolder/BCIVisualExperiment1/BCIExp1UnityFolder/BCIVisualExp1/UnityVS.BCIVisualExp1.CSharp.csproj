@@ -240,6 +240,8 @@
     <Compile Include="Assets\OVR\Scripts\OVRPresetManager.cs" />
     <Compile Include="Assets\OVR\Scripts\OVRUtils.cs" />
     <Compile Include="Assets\OVR\Scripts\OVRVisionGuide.cs" />
+    <Compile Include="Assets\Scripts\BCIDataDirector.cs" />
+    <Compile Include="Assets\Scripts\BCIStreamingDataEmulator.cs" />
     <Compile Include="Assets\Scripts\FDScripts\AcrobaticsScript.cs" />
     <Compile Include="Assets\Scripts\FDScripts\AmplitudeDispersalArrayScript.cs" />
     <Compile Include="Assets\Scripts\FDScripts\AmplitudeEditorScript.cs" />
