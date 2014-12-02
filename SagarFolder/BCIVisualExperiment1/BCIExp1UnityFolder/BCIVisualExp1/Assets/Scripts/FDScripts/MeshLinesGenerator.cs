@@ -22,9 +22,9 @@ public class MeshLinesGenerator : MonoBehaviour
 
 	int dataRepCount = 1;
 
-	AudioDirectorScript audioDirector;
+	//AudioDirectorScript audioDirector;
 
-	public int verticesFrequencyDepthCount = 200;
+	public int verticesFrequencyDepthCount = 256; // will get overitten by BCI data, not meant for inspector usage
 	public float verticesSpread = 1.0f;
 	Mesh calculationsMiniMesh;
 	Vector3[] miniVertsArray;
@@ -34,8 +34,7 @@ public class MeshLinesGenerator : MonoBehaviour
 	int[] indicesArray;
 	Vector3 tempVector;
 
-	float xScale = 1.0f;
-	float zScale = 1.0f;
+
 
 	// collumns stuff
 	GameObject[] meshCollumnsArray;
@@ -70,10 +69,19 @@ public class MeshLinesGenerator : MonoBehaviour
 	int jointsPerFinger = 5;
 	public Vector3[][] fingerJointsArrayStitchesPosArray;
 
+	BCIDataDirector bciDataDirector;
+
+	float xScale = 1.0f;
+	float zScale = 1.0f;
+	public float yScale = 1.0f;
+
 	// Use this for initialization
 	void Start () 
 	{
-		audioDirector = (AudioDirectorScript) GameObject.FindWithTag("AudioDirector").GetComponent("AudioDirectorScript");
+		//audioDirector = (AudioDirectorScript) GameObject.FindWithTag("AudioDirector").GetComponent("AudioDirectorScript");
+		bciDataDirector = FindObjectOfType<BCIDataDirector>();
+		verticesFrequencyDepthCount = bciDataDirector.currentDataArary_Raw.Length;
+
 		GenerateCalculationsMiniMesh();
 
 		// mesh lines (i.e. rows) setup
@@ -230,7 +238,7 @@ public class MeshLinesGenerator : MonoBehaviour
 
 		}
 
-		meshMaterial.color = audioDirector.calculatedRGB;
+		meshMaterial.color = bciDataDirector.GetCurrentRGB(); //audioDirector.calculatedRGB;
 
 		meshColorViewer = meshMaterial.color;
 
@@ -270,8 +278,7 @@ public class MeshLinesGenerator : MonoBehaviour
 			float amplitudeScale;
 			if(isAmplitudeScale)
 			{
-				amplitudeScale = Mathf.Clamp(audioDirector.averageAmplitude, minimumAmplitude, maximumAmplitude) ;
-
+				amplitudeScale = Mathf.Clamp( bciDataDirector.GetCurrentAverageAmplitude(), minimumAmplitude, maximumAmplitude); //audioDirector.averageAmplitude, minimumAmplitude, maximumAmplitude) ;
 			}
 			else
 			{
@@ -294,14 +301,14 @@ public class MeshLinesGenerator : MonoBehaviour
 		for(int i = 0; i<verticesFrequencyDepthCount; i++)
 		{
 			tempVector = verticesArray[ verticesFrequencyDepthCount - i -1];
-			tempVector.y = 16.0f * audioDirector.pseudoLogArrayBuffer[i/(dataRepCount+1)]; //* verticesAudioHeightScale * yScale; // normal version
+			tempVector.y = yScale * bciDataDirector.currentDataArray[i]; //16.0f * audioDirector.pseudoLogArrayBuffer[i/(dataRepCount+1)]; //* verticesAudioHeightScale * yScale; // normal version
 			//tempVector.y = ( tempHeight * verticesAudioHeightScale + verticesArray[i + verticesFrequencyDepthCount].y)/2.0f ; // time axis smoothing version
 			verticesArray[verticesFrequencyDepthCount - i -1] = tempVector;
 		}
 
 		// reset the audio data buffer
-		for(int i = 0; i < audioDirector.pseudoLogArray.Length; i++)
-			audioDirector.pseudoLogArrayBuffer[i] = 0;
+		//for(int i = 0; i < audioDirector.pseudoLogArray.Length; i++)
+		//	audioDirector.pseudoLogArrayBuffer[i] = 0;
 
 			
 		// calculate normals
@@ -372,7 +379,7 @@ public class MeshLinesGenerator : MonoBehaviour
 		Vector3 posIncrement =  meshSpeed * forwardVec * deltaT;
 		Vector3 tempPos = Vector3.zero;
 
-		Vector3 anchorLocalPos = stitchAnchorOffset * audioDirector.averageAmplitude;
+		Vector3 anchorLocalPos = stitchAnchorOffset * bciDataDirector.GetCurrentAverageAmplitude(); //audioDirector.averageAmplitude;
 
 		for(int h = 0; h < meshCollumnsArray.Length; h++)
 		{	

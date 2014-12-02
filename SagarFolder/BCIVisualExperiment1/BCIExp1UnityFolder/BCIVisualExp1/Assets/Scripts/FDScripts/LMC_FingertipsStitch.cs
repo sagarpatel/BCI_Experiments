@@ -5,7 +5,8 @@ using Leap;
 public class LMC_FingertipsStitch : MonoBehaviour 
 {
 	Controller lmcController;
-	AudioDirectorScript audioDirector;
+	//AudioDirectorScript audioDirector;
+	BCIDataDirector bciDataDirector;
 	MeshLinesGenerator meshlinesGenerator;
 
 	Vector3[] fingertipsPosArray;
@@ -30,7 +31,9 @@ public class LMC_FingertipsStitch : MonoBehaviour
 
 	void Start () 
 	{
-		audioDirector = GameObject.FindGameObjectWithTag("AudioDirector").GetComponent<AudioDirectorScript>();
+		//audioDirector = GameObject.FindGameObjectWithTag("AudioDirector").GetComponent<AudioDirectorScript>();
+		bciDataDirector = FindObjectOfType<BCIDataDirector>();
+
 		lmcController = new Controller();
 		if (lmcController == null)
 			Debug.LogWarning("Cannot connect to controller. Make sure you have Leap Motion v2.0+ installed");
@@ -103,7 +106,7 @@ public class LMC_FingertipsStitch : MonoBehaviour
 				// flipping x and z to account for parent transform facing the wrong way
 				jointPos.x *= -2.0f;
 				jointPos.z *= -4.0f;
-				jointPos *= posScale * audioDirector.overallAmplitudeScaler;
+				jointPos *= posScale * bciDataDirector.rawDataScaler; //audioDirector.overallAmplitudeScaler;
 				debugPosObjects[i].transform.localPosition = jointPos;
 				fingersArrayJointsPositionsPosArray[i][j] = debugPosObjects[i].transform.position; ;
 			}
@@ -115,7 +118,7 @@ public class LMC_FingertipsStitch : MonoBehaviour
 			// flipping x and z to account for parent transform facing the wrong way
 			leapFingerPos.x = -leapFingerPos.x * 2.0f;
 			leapFingerPos.z = -leapFingerPos.z * 4.0f ;
-			fingertipsPosArray[i] = posScale * audioDirector.overallAmplitudeScaler * leapFingerPos;
+			fingertipsPosArray[i] = posScale * bciDataDirector.rawDataScaler * leapFingerPos; //audioDirector.overallAmplitudeScaler * leapFingerPos;
 			debugPosObjects[i].transform.localPosition = fingertipsPosArray[i];
 			fingersArrayJointsPositionsPosArray[i][0] = debugPosObjects[i].transform.position;
 		}
@@ -158,6 +161,11 @@ public class LMC_FingertipsStitch : MonoBehaviour
 			remainder = (i + 1) % stitchesPerFinger;
 			if ( remainder == 0)
 				fingerIndex++;
+
+			// TODO: reimplmented this clamping to max index to handle edge case caused by change in data format
+			if(fingerIndex >4)
+				fingerIndex = 4;
+
 		}
 
 		jointsAveragePos = posAccumulator/posCounter;
@@ -180,7 +188,7 @@ public class LMC_FingertipsStitch : MonoBehaviour
 		int boneKey = GenerateBoneIDKey(fingerIndex, boneIndex);
 
 		Quaternion boneRotation = bonesQuaternionsCacheArray[boneKey];
-		float boneWidth = bonesWidthsCacheArray[boneKey] * audioDirector.overallAmplitudeScaler * 0.1f; 
+		float boneWidth = bonesWidthsCacheArray[boneKey] * 0.1f * bciDataDirector.rawDataScaler; //audioDirector.overallAmplitudeScaler * 0.1f; 
 
 		float xOffset = Mathf.Cos(progression * 2.0f * Mathf.PI);
 		float yOffset = Mathf.Sin(progression * 2.0f * Mathf.PI);
