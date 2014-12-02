@@ -1,11 +1,13 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/FDScripts/AudioDirectorScript.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/FDScripts/LMC_FingertipsStitch.cs">
     <Files>
-      <File FileName="Assets/Scripts/FDScripts/MeshLinesGenerator.cs" Line="375" Column="1" />
-      <File FileName="Assets/Scripts/BCIDataDirector.cs" Line="12" Column="14" />
-      <File FileName="Assets/Scripts/FDScripts/LMC_FingertipsStitch.cs" Line="106" Column="53" />
-      <File FileName="Assets/Scripts/FDScripts/AudioDirectorScript.cs" Line="127" Column="123" />
+      <File FileName="Assets/Scripts/FDScripts/MeshLinesGenerator.cs" Line="279" Column="23" />
+      <File FileName="Assets/Scripts/BCIDataDirector.cs" Line="21" Column="61" />
+      <File FileName="Assets/Scripts/FDScripts/LMC_FingertipsStitch.cs" Line="167" Column="21" />
+      <File FileName="Assets/Scripts/FDScripts/AudioDirectorScript.cs" Line="188" Column="2" />
+      <File FileName="Assets/Scripts/BCIStreamingDataEmulator.cs" Line="57" Column="52" />
+      <File FileName="Assets/Scripts/FDScripts/CameraHolderLerp.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
