@@ -1,7 +1,8 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/MeshGeneratorCreatureControls.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/LMC_FingertipsStitch.cs">
     <Files>
+      <File FileName="Assets/Scripts/LMC_FingertipsStitch.cs" Line="8" Column="15" />
       <File FileName="Assets/Scripts/MeshGeneratorCreatureControls.cs" Line="39" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
