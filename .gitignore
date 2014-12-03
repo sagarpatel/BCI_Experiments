@@ -25,3 +25,5 @@ sysinfo.txt
 *.unityproj
 
 *.sln
+
+*.userprefs
