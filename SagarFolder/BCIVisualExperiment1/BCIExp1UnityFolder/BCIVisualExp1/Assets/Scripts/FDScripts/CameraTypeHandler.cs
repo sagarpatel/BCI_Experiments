@@ -15,6 +15,9 @@ public class CameraTypeHandler : MonoBehaviour
 
 	Transform meshCreatureTransform;
 
+	Vector3 lerpedUpVector;
+	float lerpScale = 1.0f;
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -27,6 +30,8 @@ public class CameraTypeHandler : MonoBehaviour
 		ovrCameraControllerObject.transform.GetChild(1).camera.fieldOfView = ovrFOV;
 
 		meshCreatureTransform = GameObject.FindGameObjectWithTag("MeshCreature").transform;
+
+		lerpedUpVector = meshCreatureTransform.transform.up;
 	}
 	
 	// Update is called once per frame
@@ -44,7 +49,9 @@ public class CameraTypeHandler : MonoBehaviour
 
 		}
 
-		normalCameraObject.transform.LookAt(lookAtTarget, meshCreatureTransform.up);
+		lerpedUpVector = Vector3.Lerp(lerpedUpVector, meshCreatureTransform.up, lerpScale * Time.deltaTime);
+
+		normalCameraObject.transform.LookAt(lookAtTarget, lerpedUpVector);
 		ovrCameraControllerObject.transform.LookAt(lookAtTarget, meshCreatureTransform.up);
 	
 	}
