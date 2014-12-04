@@ -25,8 +25,16 @@ public class BCIDataDirector : MonoBehaviour
 	void Update()
 	{
 		currentDataArary_Raw = streamingDataEmulator.GetDataPointsArray();
-		for(int i = 0; i < currentDataArary_Raw.Length ; i++)
-			currentDataArray[i] = rawDataScaler * currentDataArary_Raw[i];
+		//for(int i = 0; i < currentDataArary_Raw.Length ; i++)
+		//	currentDataArray[i] = rawDataScaler * currentDataArary_Raw[i];
+
+		for(int i = 0; i< currentDataArray.Length; i += 2)
+		{
+			currentDataArray[i] = (currentDataArary_Raw[i/2] + currentDataArary_Raw[i/2 +1])/2.0f;
+			currentDataArray[i+1] = currentDataArray[i];
+		}
+
+
 	}
 
 
