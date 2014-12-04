@@ -27,3 +27,5 @@ sysinfo.txt
 *.sln
 
 *.userprefs
+
+*.DotSettings
