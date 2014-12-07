@@ -20,21 +20,28 @@ public class BCIAudioGenerator : MonoBehaviour
 
 		float[] bciData = bciDataDirector.currentDataArray;
 		int bciDataLength = bciData.Length;
-		int audioDataLength = data.Length/channels;
+		int audioDataLength_Effective = data.Length/channels;
 
 
 		// assuming that bciDataLength is always smaller than data length
-		int sampleRatio = audioDataLength/bciDataLength ;
+		int sampleRatio = audioDataLength_Effective/bciDataLength ;
 		for(int i  = 0; i < data.Length ; i  = i + channels)
 		{
-			int theoreticalBCILocation = i / sampleRatio;
+			int lowerBCIIndex = i / sampleRatio;
+			int upperBCIIndex = lowerBCIIndex + 1;
 
-			if(theoreticalBCILocation >= bciData.Length)
-				break;
+			float step = (float)(i % sampleRatio)/(float)sampleRatio;
+
+			// clamp indices
+			if( lowerBCIIndex >= bciDataLength )
+				lowerBCIIndex = bciDataLength -1;
+			if( upperBCIIndex >= bciDataLength )
+				upperBCIIndex = bciDataLength - 1;
+
+			float lerpedValue = Mathf.Lerp( bciData[lowerBCIIndex], bciData[upperBCIIndex], step);
 
 
-
-			data[i] = gain * bciData[theoreticalBCILocation];
+			data[i] = gain * lerpedValue;
 
 			// copy data to both channels if exist
 			if(channels == 2)
