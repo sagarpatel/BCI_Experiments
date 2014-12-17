@@ -398,8 +398,8 @@ class connectMuse:
         
 if __name__ == "__main__":
     
-    plotData = False
-    playbackData = True
+    plotData = True
+    playbackData = False
     
     # Instantiate the connectMuse object
     moc = connectMuse(bufferSize=5, spectrUpdatePeriod=0.1)
