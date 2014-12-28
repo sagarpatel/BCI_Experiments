@@ -12,6 +12,7 @@ public class BCIDataDirector : MonoBehaviour
 	public float[] currentDataArary_Raw;
 	public float[] currentDataArray;
 
+	public bool isLiveData = false;
 
 	void Awake()
 	{
@@ -24,7 +25,15 @@ public class BCIDataDirector : MonoBehaviour
 
 	void Update()
 	{
-		currentDataArary_Raw = streamingDataEmulator.GetDataPointsArray();
+		if(isLiveData == true)
+		{
+
+		}
+		else
+		{
+			currentDataArary_Raw = streamingDataEmulator.GetDataPointsArray();
+		}
+
 		//for(int i = 0; i < currentDataArary_Raw.Length ; i++)
 		//	currentDataArray[i] = rawDataScaler * currentDataArary_Raw[i];
 
