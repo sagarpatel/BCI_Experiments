@@ -6,6 +6,7 @@ public class BCIDataDirector : MonoBehaviour
 {
 
 	BCIStreamingDataEmulator streamingDataEmulator;
+	BCILiveDataManager liveDataManager;
 	public float rawDataScaler = 1.0f;
 	public float overallColorScaler = 1.0f;
 
@@ -17,9 +18,24 @@ public class BCIDataDirector : MonoBehaviour
 	void Awake()
 	{
 		streamingDataEmulator = FindObjectOfType<BCIStreamingDataEmulator>();
+		liveDataManager = FindObjectOfType<BCILiveDataManager>();
+
 		// TODO: maybe this should go into OnEnable() ?
-		currentDataArary_Raw = streamingDataEmulator.GetDataPointsArray();
+		if(isLiveData == true)
+		{
+		
+			currentDataArary_Raw = liveDataManager.fftarr;
+
+
+		}
+		else
+		{
+			currentDataArary_Raw = streamingDataEmulator.GetDataPointsArray();
+		}
+
 		currentDataArray = new float[currentDataArary_Raw.Length];
+
+
 	}
 
 
@@ -27,7 +43,7 @@ public class BCIDataDirector : MonoBehaviour
 	{
 		if(isLiveData == true)
 		{
-
+			currentDataArary_Raw = liveDataManager.fftarr;
 		}
 		else
 		{
@@ -39,6 +55,7 @@ public class BCIDataDirector : MonoBehaviour
 
 		for(int i = 0; i< currentDataArray.Length; i += 2)
 		{
+
 			currentDataArray[i] = (currentDataArary_Raw[i/2] + currentDataArary_Raw[i/2 +1])/2.0f;
 			currentDataArray[i+1] = currentDataArray[i];
 		}
